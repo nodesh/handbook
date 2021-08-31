@@ -36,15 +36,36 @@ no-dtls
 log-file=/var/tmp/turn.log
 # For the security reasons, it is recommended to use the encrypted
 cli-password=idc123456
+# Certificate file.
+cert=/usr/local/etc/turn_server_cert.pem
+# Private key file.
+pkey=/usr/local/etc/turn_server_pkey.pem
+```
+
+### 生成自签名证书
+```shell
+sudo openssl req -x509 -newkey rsa:2048 -keyout   /usr/local/etc/turn_server_pkey.pem -out /usr/local/etc/turn_server_cert.pem -days 99999 -nodes
 ```
 
 ## 启动
 
-### 确保端口开放
+- 阿里云后台添加安全组开放 `TCP`,`UDP` `3478` 端口
+- 修改防火墙策略
 ```shell script
 iptables -A INPUT -p udp --dport 3478 -j ACCEPT
 iptables -A INPUT -p udp --dport 5349 -j ACCEPT
+# or
+# 添加
+firewall-cmd --zone=public --add-port=3478/udp --permanent
+firewall-cmd --zone=public --add-port=3478/tcp --permanent
+# 重新载入
+firewall-cmd --reload
+# 重启防火墙
+systemctl restart firewalld
 ```
+
+### 确保端口开放
+
 ### 启动
 ```shell script
 turnserver -o -a -c /usr/local/etc/turnserver.conf
